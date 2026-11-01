@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 1 - Thẻ thông tin sinh viên</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; background: #eef2f7; margin: 0; padding: 30px; }
+    .wrap { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .card { background: #fff; width: 340px; border-radius: 14px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); text-align: center; }
+    .card img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #dbe4f0; }
+    .card h2 { margin: 12px 0 4px; }
+    .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e3e3e3; text-align: left; }
+    .row span:first-child { color: #666; }
+    .badge { padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+    .gioi { background: #d4f5dd; color: #1b7a35; }
+    .kha { background: #dbeafe; color: #1d4ed8; }
+    .tb { background: #fef3c7; color: #b45309; }
+    .chuadat { background: #fde2e2; color: #b91c1c; }
+    button { margin-top: 14px; padding: 8px 16px; border: none; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    .intro { margin-top: 12px; padding: 12px; background: #f5f7fb; border-radius: 8px; text-align: left; line-height: 1.5; }
+    .panel { background: #fff; width: 340px; border-radius: 14px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    .panel h3 { margin-top: 0; }
+    .panel label { display: block; margin: 10px 0 4px; font-size: 14px; color: #444; }
+    .panel input[type=text], .panel input[type=number] { width: 100%; padding: 7px; border: 1px solid #ccc; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div id="app" class="wrap">
+    <!-- Thẻ sinh viên -->
+    <div class="card">
+      <img v-bind:src="anhDaiDien" v-bind:alt="'Ảnh đại diện của ' + hoTen">
+
+      <!-- Họ tên bằng {{ }} -->
+      <h2>{{ hoTen }}</h2>
+
+      <div class="row"><span>Mã SV:</span><span>{{ maSV }}</span></div>
+      <!-- Tên lớp bằng v-text -->
+      <div class="row"><span>Lớp:</span><span v-text="lop"></span></div>
+      <div class="row"><span>Điểm TB:</span><span>{{ diemTB }}</span></div>
+      <div class="row">
+        <span>Xếp loại:</span>
+        <span class="badge" :class="lopXepLoai">{{ xepLoai }}</span>
+      </div>
+      <div class="row">
+        <span>Trạng thái:</span>
+        <span v-if="dangHoc" :style="{ color: 'green', fontWeight: 'bold' }">Đang học</span>
+        <span v-else :style="{ color: 'gray', fontWeight: 'bold' }">Đã nghỉ</span>
+      </div>
+
+      <button @click="hienGioiThieu = !hienGioiThieu">
+        {{ hienGioiThieu ? 'Ẩn giới thiệu' : 'Hiện giới thiệu' }}
+      </button>
+      <!-- Bật/tắt bằng v-show -->
+      <div class="intro" v-show="hienGioiThieu">{{ gioiThieu }}</div>
+    </div>
+
+    <!-- Bảng chỉnh dữ liệu để thấy giao diện tự cập nhật -->
+    <div class="panel">
+      <h3>Thay đổi dữ liệu</h3>
+      <label>Họ tên</label>
+      <input type="text" v-model="hoTen">
+      <label>Lớp</label>
+      <input type="text" v-model="lop">
+      <label>Điểm trung bình (0 - 10)</label>
+      <input type="number" v-model.number="diemTB" min="0" max="10" step="0.1">
+      <label>
+        <input type="checkbox" v-model="dangHoc"> Đang học
+      </label>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          maSV: '23001234',
+          hoTen: 'Nguyễn Văn An',
+          lop: 'K68A4 - Khoa Toán - Cơ - Tin học',
+          anhDaiDien: 'https://i.pravatar.cc/150?img=12',
+          diemTB: 8.2,
+          dangHoc: true,
+          hienGioiThieu: false,
+          gioiThieu: 'Sinh viên năm 3, yêu thích lập trình web và trí tuệ nhân tạo. Tham gia CLB Tin học và các cuộc thi lập trình cấp trường.'
+        };
+      },
+      computed: {
+        xepLoai() {
+          const d = this.diemTB;
+          if (d >= 8) return 'Giỏi';
+          if (d >= 6.5) return 'Khá';
+          if (d >= 5) return 'Trung bình';
+          return 'Chưa đạt';
+        },
+        lopXepLoai() {
+          return {
+            gioi: this.xepLoai === 'Giỏi',
+            kha: this.xepLoai === 'Khá',
+            tb: this.xepLoai === 'Trung bình',
+            chuadat: this.xepLoai === 'Chưa đạt'
+          };
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

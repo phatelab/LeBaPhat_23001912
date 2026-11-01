@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài 3 - Quản lý công việc cá nhân</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, Arial, sans-serif; background: #f0f4f8; margin: 0; padding: 30px; }
+    .box { max-width: 560px; margin: auto; background: #fff; border-radius: 14px; padding: 26px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; font-size: 24px; }
+    .add { display: flex; gap: 8px; }
+    .add input { flex: 1; padding: 9px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+    button { padding: 8px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .btn-add { background: #2563eb; color: #fff; }
+    .error { color: #c62828; font-size: 13px; margin-top: 6px; }
+    .filters { display: flex; gap: 8px; margin: 18px 0 10px; }
+    .filters button { background: #e5e7eb; }
+    .filters button.active { background: #2563eb; color: #fff; }
+    .stats { color: #555; font-size: 14px; margin-bottom: 10px; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; }
+    li span { flex: 1; }
+    li.done span { text-decoration: line-through; color: #999; }
+    .btn-del { background: #fee2e2; color: #b91c1c; }
+    .empty { text-align: center; color: #888; padding: 20px; font-style: italic; }
+    .footer { margin-top: 14px; text-align: right; }
+    .btn-clear { background: #f97316; color: #fff; }
+    .btn-clear:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div id="app" class="box">
+    <h1>📝 Công việc trong ngày</h1>
+
+    <div class="add">
+      <input type="text" v-model="tenMoi" @keyup.enter="themCongViec" placeholder="Nhập công việc rồi nhấn Enter...">
+      <button class="btn-add" @click="themCongViec">Thêm</button>
+    </div>
+    <div class="error" v-if="loi">{{ loi }}</div>
+
+    <div class="filters">
+      <button v-for="f in dsLoc" :key="f.value"
+              :class="{ active: boLoc === f.value }"
+              @click="boLoc = f.value">{{ f.label }}</button>
+    </div>
+
+    <div class="stats">
+      Tổng: <b>{{ tongSo }}</b> công việc — Chưa hoàn thành: <b>{{ soChuaXong }}</b>
+    </div>
+
+    <ul v-if="dsDaLoc.length">
+      <li v-for="cv in dsDaLoc" :key="cv.id" :class="{ done: cv.hoanThanh }">
+        <input type="checkbox" v-model="cv.hoanThanh">
+        <span>{{ cv.ten }}</span>
+        <button class="btn-del" @click="xoaCongViec(cv.id)">Xóa</button>
+      </li>
+    </ul>
+    <div class="empty" v-else-if="tongSo === 0">Danh sách trống. Hãy thêm công việc đầu tiên!</div>
+    <div class="empty" v-else>Không có công việc nào phù hợp với bộ lọc.</div>
+
+    <div class="footer">
+      <button class="btn-clear" @click="xoaDaHoanThanh" :disabled="tongSo === soChuaXong">
+        Xóa các việc đã hoàn thành
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          tenMoi: '',
+          loi: '',
+          boLoc: 'tatca',
+          idTiepTheo: 4,
+          dsLoc: [
+            { value: 'tatca', label: 'Tất cả' },
+            { value: 'chuaxong', label: 'Chưa hoàn thành' },
+            { value: 'daxong', label: 'Đã hoàn thành' }
+          ],
+          congViec: [
+            { id: 1, ten: 'Học bài VueJS', hoanThanh: false },
+            { id: 2, ten: 'Làm bài tập thực hành số 6', hoanThanh: false },
+            { id: 3, ten: 'Đi chợ mua đồ ăn', hoanThanh: true }
+          ]
+        };
+      },
+      computed: {
+        tongSo() {
+          return this.congViec.length;
+        },
+        soChuaXong() {
+          return this.congViec.filter(cv => !cv.hoanThanh).length;
+        },
+        dsDaLoc() {
+          if (this.boLoc === 'chuaxong') return this.congViec.filter(cv => !cv.hoanThanh);
+          if (this.boLoc === 'daxong') return this.congViec.filter(cv => cv.hoanThanh);
+          return this.congViec;
+        }
+      },
+      methods: {
+        themCongViec() {
+          const ten = this.tenMoi.trim();
+          if (!ten) {
+            this.loi = 'Tên công việc không được để trống.';
+            return;
+          }
+          this.congViec.push({ id: this.idTiepTheo++, ten, hoanThanh: false });
+          this.tenMoi = '';
+          this.loi = '';
+        },
+        xoaCongViec(id) {
+          this.congViec = this.congViec.filter(cv => cv.id !== id);
+        },
+        xoaDaHoanThanh() {
+          this.congViec = this.congViec.filter(cv => !cv.hoanThanh);
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
