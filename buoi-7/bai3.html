@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài 3 - Giỏ hàng</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background: #eee; }
+        button { padding: 6px 12px; margin: 3px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <h2>GIỎ HÀNG</h2>
+
+    <table v-if="gioHang.length > 0">
+        <thead>
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Đơn giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <dong-gio-hang
+                v-for="sp in gioHang"
+                :key="sp.id"
+                :san-pham="sp"
+                @doi-so-luong="capNhatSoLuong"
+                @yeu-cau-xoa="xoaSanPham">
+            </dong-gio-hang>
+        </tbody>
+    </table>
+
+    <p v-else>Giỏ hàng trống</p>
+
+    <h3>Thống kê giỏ hàng</h3>
+
+    <p>Tổng số lượng: {{ tongSoLuong }}</p>
+
+    <p>Tổng tiền: {{ tongTien.toLocaleString() }} đồng</p>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+const DongGioHang = {
+    template: `
+        <tr>
+            <td>{{ sanPham.ten }}</td>
+
+            <td>{{ sanPham.donGia.toLocaleString() }} đ</td>
+
+            <td>
+                <button @click="giam">-</button>
+                {{ sanPham.soLuong }}
+                <button @click="tang">+</button>
+            </td>
+
+            <td>
+                {{ (sanPham.donGia * sanPham.soLuong).toLocaleString() }} đ
+            </td>
+
+            <td>
+                <button @click="xoa">Xóa</button>
+            </td>
+        </tr>
+    `,
+
+    props: {
+        sanPham: {
+            type: Object,
+            required: true
+        }
+    },
+
+    emits: ["doi-so-luong", "yeu-cau-xoa"],
+
+    methods: {
+        tang() {
+            if (this.sanPham.soLuong < 99) {
+                this.$emit(
+                    "doi-so-luong",
+                    this.sanPham.id,
+                    this.sanPham.soLuong + 1
+                );
+            }
+        },
+
+        giam() {
+            if (this.sanPham.soLuong > 1) {
+                this.$emit(
+                    "doi-so-luong",
+                    this.sanPham.id,
+                    this.sanPham.soLuong - 1
+                );
+            }
+        },
+
+        xoa() {
+            this.$emit("yeu-cau-xoa", this.sanPham.id);
+        }
+    }
+};
+
+createApp({
+    components: {
+        DongGioHang
+    },
+
+    data() {
+        return {
+            gioHang: [
+                {
+                    id: 1,
+                    ten: "Bút",
+                    donGia: 5000,
+                    soLuong: 2
+                },
+                {
+                    id: 2,
+                    ten: "Vở",
+                    donGia: 12000,
+                    soLuong: 3
+                }
+            ]
+        }
+    },
+
+    computed: {
+        tongSoLuong() {
+            return this.gioHang.reduce((tong, sp) => {
+                return tong + sp.soLuong;
+            }, 0);
+        },
+
+        tongTien() {
+            return this.gioHang.reduce((tong, sp) => {
+                return tong + sp.donGia * sp.soLuong;
+            }, 0);
+        }
+    },
+
+    methods: {
+        capNhatSoLuong(id, soLuongMoi) {
+            if (!Number.isInteger(soLuongMoi) ||
+                soLuongMoi < 1 || soLuongMoi > 99) {
+                return;
+            }
+
+            const sp = this.gioHang.find(sp => sp.id === id);
+
+            if (sp) {
+                sp.soLuong = soLuongMoi;
+            }
+        },
+
+        xoaSanPham(id) {
+            this.gioHang = this.gioHang.filter(sp => sp.id !== id);
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>
