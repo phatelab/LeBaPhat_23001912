@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài 1 - Quản lý sản phẩm</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background: #eee; }
+        .con-hang { color: green; font-weight: bold; }
+        .het-hang { color: red; font-weight: bold; }
+        input, select, button { padding: 7px; margin: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <h2>QUẢN LÝ SẢN PHẨM</h2>
+
+    <p>Trạng thái: {{ trangThai }}</p>
+
+    <input v-model="tuKhoa" placeholder="Tìm theo tên sản phẩm">
+
+    <select v-model="danhMuc">
+        <option value="">Tất cả danh mục</option>
+        <option value="Điện tử">Điện tử</option>
+        <option value="Gia dụng">Gia dụng</option>
+        <option value="Văn phòng phẩm">Văn phòng phẩm</option>
+    </select>
+
+    <select v-model="sapXep">
+        <option value="">Không sắp xếp</option>
+        <option value="tang">Giá tăng dần</option>
+        <option value="giam">Giá giảm dần</option>
+    </select>
+
+    <p style="color:red">{{ thongBao }}</p>
+
+    <h3>Thêm sản phẩm</h3>
+
+    <input v-model="tenMoi" placeholder="Tên sản phẩm">
+    <input v-model.number="giaMoi" type="number" placeholder="Giá">
+    <input v-model="danhMucMoi" placeholder="Danh mục">
+    <input v-model.number="tonMoi" type="number" placeholder="Số lượng tồn">
+
+    <button @click="themSanPham">Thêm sản phẩm</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên</th>
+                <th>Giá</th>
+                <th>Danh mục</th>
+                <th>Tồn kho</th>
+                <th>Trạng thái</th>
+                <th>Xóa</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr v-for="sp in sanPhamHienThi" :key="sp.id">
+                <td>{{ sp.id }}</td>
+                <td>{{ sp.ten }}</td>
+                <td>{{ sp.gia.toLocaleString() }} đ</td>
+                <td>{{ sp.danhMuc }}</td>
+                <td>{{ sp.ton }}</td>
+                <td>
+                    <span v-if="sp.ton > 0" class="con-hang">Còn hàng</span>
+                    <span v-else class="het-hang">Hết hàng</span>
+                </td>
+                <td>
+                    <button @click="xoaSanPham(sp.id)">Xóa</button>
+                </td>
+            </tr>
+
+            <tr v-if="sanPhamHienThi.length === 0">
+                <td colspan="7">Không tìm thấy sản phẩm phù hợp</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Thống kê</h3>
+    <p>Số sản phẩm: {{ sanPhamHienThi.length }} / {{ sanPham.length }}</p>
+    <p>Tổng giá trị tồn kho: {{ tongGiaTri.toLocaleString() }} đ</p>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+createApp({
+    data() {
+        return {
+            trangThai: "Đang tải",
+            tuKhoa: "",
+            danhMuc: "",
+            sapXep: "",
+            thongBao: "",
+
+            tenMoi: "",
+            giaMoi: 0,
+            danhMucMoi: "",
+            tonMoi: 0,
+
+            sanPham: [
+                { id: 1, ten: "Laptop", gia: 15000000, danhMuc: "Điện tử", ton: 5 },
+                { id: 2, ten: "Điện thoại", gia: 8000000, danhMuc: "Điện tử", ton: 0 },
+                { id: 3, ten: "Quạt điện", gia: 500000, danhMuc: "Gia dụng", ton: 10 },
+                { id: 4, ten: "Nồi cơm", gia: 900000, danhMuc: "Gia dụng", ton: 3 },
+                { id: 5, ten: "Bút bi", gia: 5000, danhMuc: "Văn phòng phẩm", ton: 100 },
+                { id: 6, ten: "Vở", gia: 12000, danhMuc: "Văn phòng phẩm", ton: 0 }
+            ]
+        }
+    },
+
+    computed: {
+        sanPhamHienThi() {
+            let ketQua = this.sanPham.filter(sp => {
+                return sp.ten.toLowerCase().includes(this.tuKhoa.toLowerCase())
+                    && (this.danhMuc === "" || sp.danhMuc === this.danhMuc);
+            });
+
+            if (this.sapXep === "tang") {
+                ketQua = [...ketQua].sort((a, b) => a.gia - b.gia);
+            }
+
+            if (this.sapXep === "giam") {
+                ketQua = [...ketQua].sort((a, b) => b.gia - a.gia);
+            }
+
+            return ketQua;
+        },
+
+        tongGiaTri() {
+            return this.sanPhamHienThi.reduce((tong, sp) => {
+                return tong + sp.gia * sp.ton;
+            }, 0);
+        }
+    },
+
+    watch: {
+        tuKhoa(moi) {
+            if (moi.length === 1) {
+                this.thongBao = "Bạn cần nhập ít nhất 2 ký tự để tìm kiếm.";
+            } else {
+                this.thongBao = "";
+            }
+        }
+    },
+
+    mounted() {
+        this.trangThai = "Sẵn sàng";
+    },
+
+    methods: {
+        themSanPham() {
+            if (this.tenMoi.trim() === "") {
+                alert("Tên sản phẩm không được để trống!");
+                return;
+            }
+
+            if (this.giaMoi <= 0 || !Number.isFinite(this.giaMoi)) {
+                alert("Giá phải lớn hơn 0!");
+                return;
+            }
+
+            if (!Number.isInteger(this.tonMoi) || this.tonMoi < 0) {
+                alert("Tồn kho phải là số nguyên không âm!");
+                return;
+            }
+
+            if (this.danhMucMoi.trim() === "") {
+                alert("Vui lòng nhập danh mục!");
+                return;
+            }
+
+            this.sanPham.push({
+                id: Math.max(0, ...this.sanPham.map(sp => sp.id)) + 1,
+                ten: this.tenMoi.trim(),
+                gia: this.giaMoi,
+                danhMuc: this.danhMucMoi.trim(),
+                ton: this.tonMoi
+            });
+
+            this.tenMoi = "";
+            this.giaMoi = 0;
+            this.danhMucMoi = "";
+            this.tonMoi = 0;
+        },
+
+        xoaSanPham(id) {
+            if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
+                this.sanPham = this.sanPham.filter(sp => sp.id !== id);
+            }
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>
