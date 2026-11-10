@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Bài 2 - Component sản phẩm</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .card {
+            width: 220px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        img { width: 100%; height: 130px; object-fit: cover; }
+        .het-hang { color: red; font-weight: bold; }
+        .con-hang { color: green; font-weight: bold; }
+        button { padding: 8px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <h2>DANH MỤC SẢN PHẨM</h2>
+
+    <div class="container">
+        <the-san-pham
+            v-for="sp in danhSach"
+            :key="sp.id"
+            :ten="sp.ten"
+            :gia="sp.gia"
+            :anh="sp.anh"
+            :mo-ta="sp.moTa"
+            :ton-kho="sp.ton">
+        </the-san-pham>
+    </div>
+</div>
+
+<script>
+const { createApp } = Vue;
+
+const TheSanPham = {
+    template: `
+        <div class="card">
+            <img :src="anh" :alt="ten">
+
+            <h3>{{ ten }}</h3>
+
+            <p>Giá: {{ gia.toLocaleString() }} đ</p>
+
+            <p v-if="tonKho > 0" class="con-hang">
+                Còn hàng ({{ tonKho }})
+            </p>
+
+            <p v-else class="het-hang">
+                Hết hàng
+            </p>
+
+            <button @click="hienThi = !hienThi">
+                {{ hienThi ? 'Ẩn mô tả' : 'Xem mô tả' }}
+            </button>
+
+            <p v-if="hienThi">{{ moTa }}</p>
+
+            <button :disabled="tonKho === 0" @click="mua">
+                Mua
+            </button>
+        </div>
+    `,
+
+    props: {
+        ten: {
+            type: String,
+            required: true
+        },
+
+        gia: {
+            type: Number,
+            required: true
+        },
+
+        anh: {
+            type: String,
+            default: "https://placehold.co/220x130"
+        },
+
+        moTa: {
+            type: String,
+            default: "Chưa có mô tả"
+        },
+
+        tonKho: {
+            type: Number,
+            default: 0
+        }
+    },
+
+    data() {
+        return {
+            hienThi: false
+        }
+    },
+
+    methods: {
+        mua() {
+            alert("Bạn đã chọn mua: " + this.ten);
+        }
+    }
+};
+
+createApp({
+    components: {
+        TheSanPham
+    },
+
+    data() {
+        return {
+            danhSach: [
+                {
+                    id: 1,
+                    ten: "Laptop",
+                    gia: 15000000,
+                    anh: "https://placehold.co/220x130?text=Laptop",
+                    moTa: "Laptop dùng cho học tập và làm việc.",
+                    ton: 5
+                },
+                {
+                    id: 2,
+                    ten: "Điện thoại",
+                    gia: 8000000,
+                    anh: "https://placehold.co/220x130?text=Phone",
+                    moTa: "Điện thoại thông minh.",
+                    ton: 0
+                },
+                {
+                    id: 3,
+                    ten: "Bàn phím",
+                    gia: 500000,
+                    anh: "https://placehold.co/220x130?text=Keyboard",
+                    moTa: "Bàn phím máy tính.",
+                    ton: 10
+                },
+                {
+                    id: 4,
+                    ten: "Chuột máy tính",
+                    gia: 200000,
+                    anh: "https://placehold.co/220x130?text=Mouse",
+                    moTa: "Chuột sử dụng cho máy tính.",
+                    ton: 3
+                }
+            ]
+        }
+    }
+}).mount("#app");
+</script>
+
+</body>
+</html>
